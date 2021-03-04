@@ -1,5 +1,6 @@
 #include <unistd.h>
-#include <stdarg>
+#include <stdarg.h>
+#include <stdio.h>
 
 
 #define HEX 16
@@ -9,7 +10,7 @@ typedef struct s_flags
 {
 	int		width;
 	int		preci;
-	int		p
+	int		p;
 }			t_flags;
 
 va_list ap;
@@ -23,7 +24,14 @@ void	init_flags()
 	flags.p = 0;
 }
 
-int		ft_atoi(char *s)
+int		ft_strlen(char *s)
+{
+	int i = 0;
+	while (s[i])
+		i++;
+	return (i);
+}
+int		ft_atoi(const char *s)
 {
 	long num;
 	while (*s >= '0' && *s <= '9')
@@ -56,14 +64,28 @@ int		num(int n, int set)
 	return (len);
 }
 
+void	ft_puthex(unsigned int x)
+{
+	char *num;
+
+	num = "0123456789abdef";
+	if (x < HEX)
+		ft_putchar(num[x]);
+	else if (x >= HEX)
+	{
+		ft_puthex(x / HEX);
+		ft_puthex(x % HEX);
+	}
+}
+
 void	print_hex()
 {
 	unsigned int x;
 	int	preci, spaces, i;
 	
 	x = va_arg(ap, unsigned int);
-	preci = (flags.prec > num(x, HEX))? flags.prec - num(x, HEX) : 0 ;
-	spaces = (preci > 0) ? flags.width - flags.prec : flags.width - num(x, HEX);
+	preci = (flags.preci > num(x, HEX))? flags.preci - num(x, HEX) : 0 ;
+	spaces = (preci > 0) ? flags.width - flags.preci : flags.width - num(x, HEX);
 	i = -1;
 	while (++i < spaces)
 		ft_putchar(' ');
@@ -78,7 +100,7 @@ void	print_str()
 	char *s;
 	int preci, spaces, i;
 
-	s = va_arg(ap, char*)
+	s = va_arg(ap, char*);
 	preci = (flags.p && flags.preci < ft_strlen(s)) ? flags.preci : ft_strlen(s);
 	spaces = flags.width - preci;
 	i = 0;
@@ -89,7 +111,7 @@ void	print_str()
 	}
 	while (i < preci)
 	{
-		ft_putchar(str[i]);
+		ft_putchar(s[i]);
 		i++;
 	}
 }
@@ -110,12 +132,12 @@ void	ft_putnbr(int n, int preci)
 	}
 	else
 		i = n;
-	if (i < 10)
+	if (i < DEC)
 		ft_putchar(i + '0');
-	else if (i > 9)
+	else if (i >= DEC)
 	{
-		ft_putnbr(i / 10);
-		ft_putnbr(i % 10);
+		ft_putnbr(i / DEC, preci);
+		ft_putnbr(i % DEC, preci);
 	}
 }
 
@@ -124,10 +146,10 @@ void	print_int()
 	int d, preci, spaces, signe;
 
 	d = va_arg(ap, int);
-	signe = (d < 0) 1 : 0;
-	preci = (flag.prec < num(d, DEC)) ? (flag.prec - num(d, DEC)) : 0;
-	spaces = (preci > 0) ? flags.width - (flags.prec + signe) : flags.width - (num(d, DEC) + signe);
-	for (i = -1; (i < spaces); i++)
+	signe = (d < 0) ?  1 : 0;
+	preci = (flags.preci < num(d, DEC)) ? (flags.preci - num(d, DEC)) : 0;
+	spaces = (preci > 0) ? flags.width - (flags.preci + signe) : flags.width - (num(d, DEC) + signe);
+	for (int i = -1; (i < spaces); i++)
 		ft_putchar(' ');
 	ft_putnbr(d, preci);
 }
@@ -149,11 +171,11 @@ void	ft_check(const char *s, int *i)
 		flags.preci = ft_atoi(s + (*i));
 		*i += num(flags.preci, DEC);
 	}
-	if (s[*i] == d)
+	if (s[*i] == 'd')
 		print_int();
-	if (s[*i] == s)
+	if (s[*i] == 's')
 		print_str();
-	else if (s[*i] == x)
+	else if (s[*i] == 'x')
 		print_hex();
 }
 
@@ -162,6 +184,7 @@ int		ft_printf(const char *s, ...)
 	int	i;
 
 	i = 0;
+	g_count = 0;
 	va_start(ap, s);
 	while (s[i])
 	{
@@ -169,14 +192,24 @@ int		ft_printf(const char *s, ...)
 		if (s[i] == '%')
 		{
 			ft_check(s, &i);
-			i++
+			i++;
 		}
 		else
 			ft_putchar(s[i]);
 		i++;
 	}
-	va_end(ap)
+	va_end(ap);
 		
 	return (g_count);
 }
 
+
+int		main()
+{
+	ft_printf("ft_printf: %10.2s\n", "toto");
+	printf("printf: %10.2s\n", "toto");
+	ft_printf("ft_printf: Magic %s is %5d\n", "number", 42);
+	printf("printf: Magic %s is %5di\n", "number", 42);
+	ft_printf("ft_printf: Hexadecimal for %d is %x\n", 42, 42);
+	printf("printf: Hexadecimal for %d is %x\n", 42, 42);
+}
