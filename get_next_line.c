@@ -1,65 +1,58 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
+#include <stdio.h>
 
-int		ft_strlen(char *s)
+size_t	ft_strlen(char *s)
 {
-	int i;
+	int i = 0;
 
-	i = 0;
 	while (s[i])
 		i++;
 	return (i);
 }
-
-char	*str_char(char *str, char buff)
+char	*ft_strjoin(char *line, char buffer)
 {
-	char *ret;
-	int	i;
-	int	len;
+	char *str;
+	int i = ft_strlen(line);
 
-	len = ft_strlen(str);
-	i = 0;
-	if (!(ret = (char *)malloc(sizeof(char) * (len + 2))))
+	if (!(str = (char *)malloc(i + 2)))
 		return (0);
-	while (str[i])
+	i = 0;
+	while (line[i])
 	{
-		ret[i] = str[i];
+		str[i] = line[i];
 		i++;
 	}
-	ret[i] = buff;
-	ret[i + 1] = '\0';
-	free(str);
-	str = NULL;
-	return (ret);
+	str[i] = buffer;
+	str[i + 1] = '\0';
+	free(line);
+	line = NULL;
+	return (str);
 }
 
 int		get_next_line(char **line)
 {
-	char buff;
-	int	len;
-	int	read_ret;
+	char *buffer;
+	int		n;
 
-	buff = -1;
-	len = 0;
-	if (!(*line = (char *)malloc(sizeof(char) * 1)))
+	buffer = (char *)malloc(2);
+	if (!line || !buffer || !(*line = (char *)malloc(1)))
 		return (-1);
-	while ((read_ret = read(0, &buff, 1) > 0) && buff != '\n')
+	*line[0] = '\0';
+	while ((n = read(0, buffer, 1)) > 0)
 	{
-		*line = str_char(*line, buff);
-		len++;
+		if (buffer[0] == '\n')
+			break ;
+		*line = ft_strjoin(*line, buffer[0]);
 	}
-	if (len > 0 && buff != '\n')
-		return (-1);
-	if (read_ret == 0 && !buff)
-		return (0);
-	return (1);
+	free(buffer);
+	buffer = NULL;
+	return (n);
 }
 
 int		main()
 {
 	char *line;
-
 	while (get_next_line(&line) > 0)
 	{
 		printf("%s\n", line);
@@ -70,5 +63,5 @@ int		main()
 	free(line);
 	line = NULL;
 
-	return 0;
+	return (0);
 }
